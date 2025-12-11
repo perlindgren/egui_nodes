@@ -268,6 +268,7 @@ impl Context {
                 self.canvas_rect_screen_space,
                 0.0,
                 (1.0, self.style.colors[ColorStyle::GridLine as usize]),
+                egui::epaint::StrokeKind::Middle,
             );
             response
         }
@@ -861,6 +862,7 @@ impl Context {
                     node.rect,
                     node.layout_style.corner_rounding,
                     (node.layout_style.border_thickness, node.color_style.outline),
+                    egui::epaint::StrokeKind::Middle,
                 ),
             );
         }
@@ -1046,7 +1048,13 @@ impl Context {
                 let box_selector_color = self.style.colors[ColorStyle::BoxSelector as usize];
                 let box_selector_outline =
                     self.style.colors[ColorStyle::BoxSelectorOutline as usize];
-                ui.painter().rect(rect, 0.0, box_selector_color, (1.0, box_selector_outline));
+                ui.painter().rect(
+                    rect,
+                    0.0,
+                    box_selector_color,
+                    (1.0, box_selector_outline),
+                    egui::epaint::StrokeKind::Middle,
+                );
 
                 if self.left_mouse_released {
                     let mut idxs = Vec::with_capacity(self.selected_node_indices.len());
