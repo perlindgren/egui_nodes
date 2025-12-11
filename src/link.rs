@@ -176,7 +176,7 @@ impl LinkBezierData {
         false
     }
 
-    pub(crate) fn draw(&self, stroke: impl Into<egui::epaint::Stroke>) -> egui::Shape {
+    pub(crate) fn draw(&self, stroke: impl Into<egui::epaint::PathStroke>) -> egui::Shape {
         let points = std::iter::once(self.bezier.0)
             .chain(
                 (1..self.num_segments)

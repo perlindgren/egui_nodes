@@ -90,7 +90,7 @@ fn main() {
     eframe::run_native(
         "My egui App",
         eframe::NativeOptions::default(),
-        Box::new(|_| Box::new(MyApp::default())),
+        Box::new(|_| Ok(Box::new(MyApp::default()))),
     )
     .ok();
 }
