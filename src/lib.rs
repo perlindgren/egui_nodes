@@ -166,10 +166,8 @@ impl Context {
             );
             {
                 let ui = &mut ui;
-                let screen_rect = ui.input().screen_rect();
-                ui.set_clip_rect(
-                    self.canvas_rect_screen_space.intersect(screen_rect),
-                );
+                let screen_rect = ui.input(|i| i.screen_rect());
+                ui.set_clip_rect(self.canvas_rect_screen_space.intersect(screen_rect));
                 ui.painter().rect_filled(
                     self.canvas_rect_screen_space,
                     0.0,
@@ -201,7 +199,7 @@ impl Context {
                 egui::Sense::click_and_drag(),
             );
             {
-                let io = ui.ctx().input();
+                let io = ui.ctx().input(|i| i.clone());
                 let mouse_pos = if let Some(mouse_pos) = response.hover_pos() {
                     self.mouse_in_canvas = true;
                     mouse_pos
@@ -759,13 +757,13 @@ impl Context {
 
             let start_pin = &self.pins.pool[link.start_pin_index];
             let end_pin = &self.pins.pool[link.end_pin_index];
-            
+
             let link_data = LinkBezierData::get_link_renderable(
                 start_pin.pos,
                 end_pin.pos,
                 start_pin.kind,
                 self.style.link_line_segments_per_length,
-                self.style.link_bezier_offset_coefficient
+                self.style.link_bezier_offset_coefficient,
             );
             let link_rect = link_data
                 .bezier
@@ -790,7 +788,7 @@ impl Context {
             end_pin.pos,
             start_pin.kind,
             self.style.link_line_segments_per_length,
-            self.style.link_bezier_offset_coefficient
+            self.style.link_bezier_offset_coefficient,
         );
         let link_shape = link.shape.take().unwrap();
         let link_hovered = self.hovered_link_idx == Some(link_idx)
@@ -1031,7 +1029,7 @@ impl Context {
                 *end,
                 start_type,
                 self.style.link_line_segments_per_length,
-                self.style.link_bezier_offset_coefficient
+                self.style.link_bezier_offset_coefficient,
             );
             return link_data.rectangle_overlaps_bezier(rect);
         }
@@ -1094,7 +1092,7 @@ impl Context {
                     .click_interaction_state
                     .link_creation
                     .end_pin_index
-                    .map_or(false, |idx| self.hovered_pin_index != Some(idx));    
+                    .map_or(false, |idx| self.hovered_pin_index != Some(idx));
 
                 if snapping_pin_changed && self.snap_link_idx.is_some() {
                     self.begin_link_detach(
@@ -1120,7 +1118,7 @@ impl Context {
                     end_pos,
                     start_pin.kind,
                     self.style.link_line_segments_per_length,
-                    self.style.link_bezier_offset_coefficient
+                    self.style.link_bezier_offset_coefficient,
                 );
                 ui.painter().add(link_data.draw((
                     self.style.link_thickness,
@@ -1189,19 +1187,19 @@ impl Context {
                 self.begin_link_detach(idx, self.hovered_pin_index.unwrap());
                 self.click_interaction_state.link_creation.link_creation_type =
                     LinkCreationType::FromDetach;
-            }   else if self.link_detatch_with_modifier_click {
-                    let link = &self.links.pool[idx];
-                    let start_pin = &self.pins.pool[link.start_pin_index];
-                    let end_pin = &self.pins.pool[link.end_pin_index];
-                    let dist_to_start = start_pin.pos.distance(self.mouse_pos);
-                    let dist_to_end = end_pin.pos.distance(self.mouse_pos);
-                    let closest_pin_idx = if dist_to_start < dist_to_end {
-                        link.start_pin_index
-                    } else {
-                        link.end_pin_index
-                    };
-                    self.click_interaction_type = ClickInteractionType::LinkCreation;
-                    self.begin_link_detach(idx, closest_pin_idx);
+            } else if self.link_detatch_with_modifier_click {
+                let link = &self.links.pool[idx];
+                let start_pin = &self.pins.pool[link.start_pin_index];
+                let end_pin = &self.pins.pool[link.end_pin_index];
+                let dist_to_start = start_pin.pos.distance(self.mouse_pos);
+                let dist_to_end = end_pin.pos.distance(self.mouse_pos);
+                let closest_pin_idx = if dist_to_start < dist_to_end {
+                    link.start_pin_index
+                } else {
+                    link.end_pin_index
+                };
+                self.click_interaction_type = ClickInteractionType::LinkCreation;
+                self.begin_link_detach(idx, closest_pin_idx);
             }
         } else {
             self.begin_link_selection(idx);
