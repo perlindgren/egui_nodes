@@ -44,6 +44,7 @@
 //! ```
 
 use derivative::Derivative;
+use egui::Layout;
 use std::collections::HashMap;
 
 mod link;
@@ -160,76 +161,104 @@ impl Context {
 
         {
             ui.set_min_size(self.canvas_rect_screen_space.size());
-            let mut ui = ui.child_ui(
-                self.canvas_rect_screen_space,
-                egui::Layout::top_down(egui::Align::Center),
-            );
-            {
-                let ui = &mut ui;
-                let screen_rect = ui.input().screen_rect();
-                ui.set_clip_rect(
-                    self.canvas_rect_screen_space.intersect(screen_rect),
-                );
-                ui.painter().rect_filled(
-                    self.canvas_rect_screen_space,
-                    0.0,
-                    self.style.colors[ColorStyle::GridBackground as usize],
-                );
+            // let mut ui = ui.new_child(egui::UiBuilder::new()).with_layout(
+            //     Layout::top_down(egui::Align::Center),
+            //     |ui| {
+            //         let screen_rect = ui.interact(rect, id, sense).screen_rect();
+            //         ui.set_clip_rect(self.canvas_rect_screen_space.intersect(screen_rect));
+            //         ui.painter().rect_filled(
+            //             self.canvas_rect_screen_space,
+            //             0.0,
+            //             self.style.colors[ColorStyle::GridBackground as usize],
+            //         );
 
-                if (self.style.flags & StyleFlags::GridLines as usize) != 0 {
-                    self.draw_grid(self.canvas_rect_screen_space.size(), ui);
-                }
+            //         if (self.style.flags & StyleFlags::GridLines as usize) != 0 {
+            //             self.draw_grid(self.canvas_rect_screen_space.size(), ui);
+            //         }
 
-                let links = links.into_iter().collect::<Vec<_>>();
-                for (id, start, end, args) in links {
-                    self.add_link(id, start, end, args, ui);
-                }
+            //         let links = links.into_iter().collect::<Vec<_>>();
+            //         for (id, start, end, args) in links {
+            //             self.add_link(id, start, end, args, ui);
+            //         }
 
-                let mut nodes = nodes
-                    .into_iter()
-                    .map(|x| (self.node_pool_find_or_create_index(x.id, x.pos), x))
-                    .collect::<HashMap<_, _>>();
-                for idx in self.node_depth_order.clone() {
-                    if let Some(node_builder) = nodes.remove(&idx) {
-                        self.add_node(idx, node_builder, ui);
-                    }
-                }
-            }
+            //         let mut nodes = nodes
+            //             .into_iter()
+            //             .map(|x| (self.node_pool_find_or_create_index(x.id, x.pos), x))
+            //             .collect::<HashMap<_, _>>();
+            //         for idx in self.node_depth_order.clone() {
+            //             if let Some(node_builder) = nodes.remove(&idx) {
+            //                 self.add_node(idx, node_builder, ui);
+            //             }
+            //         }
+            //     },
+            // );
+            //     self.canvas_rect_screen_space,
+            //     egui::Layout::top_down(egui::Align::Center),
+            // );
+            // {
+            //     let ui = &mut ui;
+            //     let screen_rect = ui.input().screen_rect();
+            //     ui.set_clip_rect(self.canvas_rect_screen_space.intersect(screen_rect));
+            //     ui.painter().rect_filled(
+            //         self.canvas_rect_screen_space,
+            //         0.0,
+            //         self.style.colors[ColorStyle::GridBackground as usize],
+            //     );
+
+            //     if (self.style.flags & StyleFlags::GridLines as usize) != 0 {
+            //         self.draw_grid(self.canvas_rect_screen_space.size(), ui);
+            //     }
+
+            //     let links = links.into_iter().collect::<Vec<_>>();
+            //     for (id, start, end, args) in links {
+            //         self.add_link(id, start, end, args, ui);
+            //     }
+
+            //     let mut nodes = nodes
+            //         .into_iter()
+            //         .map(|x| (self.node_pool_find_or_create_index(x.id, x.pos), x))
+            //         .collect::<HashMap<_, _>>();
+            //     for idx in self.node_depth_order.clone() {
+            //         if let Some(node_builder) = nodes.remove(&idx) {
+            //             self.add_node(idx, node_builder, ui);
+            //         }
+            //     }
+            // }
             let response = ui.interact(
                 self.canvas_rect_screen_space,
                 ui.id().with("Input"),
                 egui::Sense::click_and_drag(),
             );
-            {
-                let io = ui.ctx().input();
-                let mouse_pos = if let Some(mouse_pos) = response.hover_pos() {
-                    self.mouse_in_canvas = true;
-                    mouse_pos
-                } else {
-                    self.mouse_in_canvas = false;
-                    self.mouse_pos
-                };
-                self.mouse_delta = mouse_pos - self.mouse_pos;
-                self.mouse_pos = mouse_pos;
-                let left_mouse_clicked = io.pointer.button_down(egui::PointerButton::Primary);
-                self.left_mouse_released =
-                    (self.left_mouse_clicked || self.left_mouse_dragging) && !left_mouse_clicked;
-                self.left_mouse_dragging =
-                    (self.left_mouse_clicked || self.left_mouse_dragging) && left_mouse_clicked;
-                self.left_mouse_clicked =
-                    left_mouse_clicked && !(self.left_mouse_clicked || self.left_mouse_dragging);
+            // {
+            //     let io = ui.ctx().input();
+            //     let mouse_pos = if let Some(mouse_pos) = response.hover_pos() {
+            //         self.mouse_in_canvas = true;
+            //         mouse_pos
+            //     } else {
+            //         self.mouse_in_canvas = false;
+            //         self.mouse_pos
+            //     };
+            //     self.mouse_delta = mouse_pos - self.mouse_pos;
+            //     self.mouse_pos = mouse_pos;
+            //     let left_mouse_clicked = io.pointer.button_down(egui::PointerButton::Primary);
+            //     self.left_mouse_released =
+            //         (self.left_mouse_clicked || self.left_mouse_dragging) && !left_mouse_clicked;
+            //     self.left_mouse_dragging =
+            //         (self.left_mouse_clicked || self.left_mouse_dragging) && left_mouse_clicked;
+            //     self.left_mouse_clicked =
+            //         left_mouse_clicked && !(self.left_mouse_clicked || self.left_mouse_dragging);
 
-                let alt_mouse_clicked = self.io.emulate_three_button_mouse.is_active(&io.modifiers)
-                    || self.io.alt_mouse_button.map_or(false, |x| io.pointer.button_down(x));
-                self.alt_mouse_dragging =
-                    (self.alt_mouse_clicked || self.alt_mouse_dragging) && alt_mouse_clicked;
-                self.alt_mouse_clicked =
-                    alt_mouse_clicked && !(self.alt_mouse_clicked || self.alt_mouse_dragging);
-                self.link_detatch_with_modifier_click =
-                    self.io.link_detatch_with_modifier_click.is_active(&io.modifiers);
-            }
+            //     let alt_mouse_clicked = self.io.emulate_three_button_mouse.is_active(&io.modifiers)
+            //         || self.io.alt_mouse_button.map_or(false, |x| io.pointer.button_down(x));
+            //     self.alt_mouse_dragging =
+            //         (self.alt_mouse_clicked || self.alt_mouse_dragging) && alt_mouse_clicked;
+            //     self.alt_mouse_clicked =
+            //         alt_mouse_clicked && !(self.alt_mouse_clicked || self.alt_mouse_dragging);
+            //     self.link_detatch_with_modifier_click =
+            //         self.io.link_detatch_with_modifier_click.is_active(&io.modifiers);
+            // }
             {
-                let ui = &mut ui;
+                //let ui = &mut ui;
                 if self.mouse_in_canvas {
                     self.resolve_occluded_pins();
                     self.resolve_hovered_pin();
@@ -269,6 +298,7 @@ impl Context {
                 self.canvas_rect_screen_space,
                 0.0,
                 (1.0, self.style.colors[ColorStyle::GridLine as usize]),
+                egui::epaint::StrokeKind::Middle,
             );
             response
         }
@@ -759,13 +789,13 @@ impl Context {
 
             let start_pin = &self.pins.pool[link.start_pin_index];
             let end_pin = &self.pins.pool[link.end_pin_index];
-            
+
             let link_data = LinkBezierData::get_link_renderable(
                 start_pin.pos,
                 end_pin.pos,
                 start_pin.kind,
                 self.style.link_line_segments_per_length,
-                self.style.link_bezier_offset_coefficient
+                self.style.link_bezier_offset_coefficient,
             );
             let link_rect = link_data
                 .bezier
@@ -790,7 +820,7 @@ impl Context {
             end_pin.pos,
             start_pin.kind,
             self.style.link_line_segments_per_length,
-            self.style.link_bezier_offset_coefficient
+            self.style.link_bezier_offset_coefficient,
         );
         let link_shape = link.shape.take().unwrap();
         let link_hovered = self.hovered_link_idx == Some(link_idx)
@@ -862,6 +892,7 @@ impl Context {
                     node.rect,
                     node.layout_style.corner_rounding,
                     (node.layout_style.border_thickness, node.color_style.outline),
+                    egui::epaint::StrokeKind::Middle,
                 ),
             );
         }
@@ -1031,7 +1062,7 @@ impl Context {
                 *end,
                 start_type,
                 self.style.link_line_segments_per_length,
-                self.style.link_bezier_offset_coefficient
+                self.style.link_bezier_offset_coefficient,
             );
             return link_data.rectangle_overlaps_bezier(rect);
         }
@@ -1047,7 +1078,13 @@ impl Context {
                 let box_selector_color = self.style.colors[ColorStyle::BoxSelector as usize];
                 let box_selector_outline =
                     self.style.colors[ColorStyle::BoxSelectorOutline as usize];
-                ui.painter().rect(rect, 0.0, box_selector_color, (1.0, box_selector_outline));
+                ui.painter().rect(
+                    rect,
+                    0.0,
+                    box_selector_color,
+                    (1.0, box_selector_outline),
+                    egui::epaint::StrokeKind::Middle,
+                );
 
                 if self.left_mouse_released {
                     let mut idxs = Vec::with_capacity(self.selected_node_indices.len());
@@ -1094,7 +1131,7 @@ impl Context {
                     .click_interaction_state
                     .link_creation
                     .end_pin_index
-                    .map_or(false, |idx| self.hovered_pin_index != Some(idx));    
+                    .map_or(false, |idx| self.hovered_pin_index != Some(idx));
 
                 if snapping_pin_changed && self.snap_link_idx.is_some() {
                     self.begin_link_detach(
@@ -1120,7 +1157,7 @@ impl Context {
                     end_pos,
                     start_pin.kind,
                     self.style.link_line_segments_per_length,
-                    self.style.link_bezier_offset_coefficient
+                    self.style.link_bezier_offset_coefficient,
                 );
                 ui.painter().add(link_data.draw((
                     self.style.link_thickness,
@@ -1189,19 +1226,19 @@ impl Context {
                 self.begin_link_detach(idx, self.hovered_pin_index.unwrap());
                 self.click_interaction_state.link_creation.link_creation_type =
                     LinkCreationType::FromDetach;
-            }   else if self.link_detatch_with_modifier_click {
-                    let link = &self.links.pool[idx];
-                    let start_pin = &self.pins.pool[link.start_pin_index];
-                    let end_pin = &self.pins.pool[link.end_pin_index];
-                    let dist_to_start = start_pin.pos.distance(self.mouse_pos);
-                    let dist_to_end = end_pin.pos.distance(self.mouse_pos);
-                    let closest_pin_idx = if dist_to_start < dist_to_end {
-                        link.start_pin_index
-                    } else {
-                        link.end_pin_index
-                    };
-                    self.click_interaction_type = ClickInteractionType::LinkCreation;
-                    self.begin_link_detach(idx, closest_pin_idx);
+            } else if self.link_detatch_with_modifier_click {
+                let link = &self.links.pool[idx];
+                let start_pin = &self.pins.pool[link.start_pin_index];
+                let end_pin = &self.pins.pool[link.end_pin_index];
+                let dist_to_start = start_pin.pos.distance(self.mouse_pos);
+                let dist_to_end = end_pin.pos.distance(self.mouse_pos);
+                let closest_pin_idx = if dist_to_start < dist_to_end {
+                    link.start_pin_index
+                } else {
+                    link.end_pin_index
+                };
+                self.click_interaction_type = ClickInteractionType::LinkCreation;
+                self.begin_link_detach(idx, closest_pin_idx);
             }
         } else {
             self.begin_link_selection(idx);

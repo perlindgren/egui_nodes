@@ -1,6 +1,5 @@
 use super::*;
 use derivative::Derivative;
-use egui::epaint::PathShape;
 
 /// The Color Style of a Link. If feilds are None then the Context style is used
 #[derive(Default, Debug)]
@@ -66,7 +65,7 @@ impl PartialEq for LinkData {
         let mut lhs_end = self.end_pin_index;
         let mut rhs_start = rhs.start_pin_index;
         let mut rhs_end = rhs.end_pin_index;
-        
+
         // Order start and end pin in increasing order
         // Links are undirected so this is necessary for the equality to hold
         if lhs_start > lhs_end {
@@ -121,7 +120,7 @@ impl LinkBezierData {
         end: egui::Pos2,
         start_type: AttributeType,
         line_segments_per_length: f32,
-        link_bezier_offset_coefficient: egui::Vec2
+        link_bezier_offset_coefficient: egui::Vec2,
     ) -> Self {
         let (mut start, mut end) = (start, end);
         if start_type == AttributeType::Input {
@@ -129,7 +128,10 @@ impl LinkBezierData {
         }
 
         let link_length = end.distance(start);
-        let offset = egui::vec2(link_bezier_offset_coefficient.x * link_length, link_bezier_offset_coefficient.y);
+        let offset = egui::vec2(
+            link_bezier_offset_coefficient.x * link_length,
+            link_bezier_offset_coefficient.y,
+        );
         Self {
             bezier: BezierCurve(start, start + offset, end - offset, end),
             num_segments: 1.max((link_length * line_segments_per_length) as usize),
@@ -174,7 +176,7 @@ impl LinkBezierData {
         false
     }
 
-    pub(crate) fn draw(&self, stroke: impl Into<egui::Stroke>) -> egui::Shape {
+    pub(crate) fn draw(&self, stroke: impl Into<egui::epaint::PathStroke>) -> egui::Shape {
         let points = std::iter::once(self.bezier.0)
             .chain(
                 (1..self.num_segments)
@@ -182,11 +184,11 @@ impl LinkBezierData {
             )
             .chain(std::iter::once(self.bezier.3))
             .collect();
-        let path_shape = PathShape{
+        let path_shape = egui::epaint::PathShape {
             points,
             closed: false,
             fill: egui::Color32::TRANSPARENT,
-            stroke: stroke.into()
+            stroke: stroke.into(),
         };
         egui::Shape::Path(path_shape)
     }
